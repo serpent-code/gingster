@@ -20,7 +20,7 @@ S: Spades, C: Clubs, H: Hearts, D: Diamonds
 
 This is one example of acceptable input when asked for the initial hand:
 
-`as 2s 3s 4s 9c tc JC JS Qs ks`
+`as 2s 3s 4s 9c tc JC JS Qs kh`
 
 At any point entering "end" in input it makes the melds it can, counts its deadwood and exits.
 
