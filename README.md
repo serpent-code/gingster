@@ -3,7 +3,7 @@ Gin Rummy playing engine. Written in Rust.
 
 Gingster is a CLI gin rummy playing program. It's not a complete software suit to play gin rummy against the computer, rather it's a gin player only. It prompts the user to enter a starting hand and then asks what's happening in the actual game outside its control like what card the opponent dropped and so on. Then it would say things like pickup 7S or drop KC, etc and it expects the player does as it says in the actual game.
 
-All card inputs have the form 1 character rank followed immediately by 1 character suit, case insesitive.
+All card inputs have the form 1 character rank followed immediately by 1 character suit, case insensitive.
 
 ranks:
 
