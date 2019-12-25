@@ -7,11 +7,11 @@ All card inputs have the form 1 character rank followed immediately by 1 charact
 
 ranks:
 
-Ace => A
-2 ..= 9 => number itself
-10 => T
-Jack => J
-Queen => Q
+Ace => A,
+2 ..= 9 => number itself,
+10 => T,
+Jack => J,
+Queen => Q,
 King => K
 
 Suits:
