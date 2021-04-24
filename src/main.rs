@@ -305,11 +305,21 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 	let mut deadwood_sorted: Vec<Card> = deadwood.iter().cloned().collect();
 	deadwood_sorted.sort();
 
-	if deadwood_sorted.len() == 0 {
-		println!("BIG GIN!");
-		print_melds_and_deadwood(&hand);
-		std::process::exit(0);
+	match deadwood_sorted.len() {
+		0 => {
+			println!("BIG GIN!");
+			print_melds_and_deadwood(&hand);
+			std::process::exit(0);
+		},
+		1 => {
+			println!("Drop {} and declare GIN!" , deadwood_sorted[0]);
+			hand.remove(&deadwood_sorted[0]);
+			print_melds_and_deadwood(&hand);
+			std::process::exit(0);
+		},
+		_ => {},
 	}
+
 
 	let dropped_card = deadwood_sorted.pop().unwrap();
 
@@ -322,27 +332,12 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 	}
 
 	match deadwood_count {
-		0 => {
-		println!("BIG GIN!");
-		print_melds_and_deadwood(&hand);
-		std::process::exit(0);
-		},
+		0 => panic!("Big gin should've been handled before"),
 		1 ..= 10 => {
-			match deadwood.len() {
-				1 => {
-					println!("Drop {} and declare GIN!" , dropped_card);
-					hand.remove(&dropped_card);
-					print_melds_and_deadwood(&hand);
-					std::process::exit(0);
-				},
-				_ => {
-					println!("Drop {} and Knock!" , dropped_card);
-					hand.remove(&dropped_card);
-					print_melds_and_deadwood(&hand);
-					std::process::exit(0);
-				},
-			}
-		
+			println!("Drop {} and Knock!" , dropped_card);
+			hand.remove(&dropped_card);
+			print_melds_and_deadwood(&hand);
+			std::process::exit(0);
 		},
 
 		11 ..= 20 => {
