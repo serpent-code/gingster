@@ -5,7 +5,7 @@
 
 mod melder;
 mod structs;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use crate::structs::card::*;
 
 
@@ -154,59 +154,9 @@ fn get_one_card(hand: &HashSet<Card>) -> (bool, Card) {
 	(oppo_picked_faceup_card , card)
 }
 
-fn melds(hand: &HashSet<Card>) -> (HashMap<i32, HashSet<Card>>, Vec<HashSet<Card>>, HashSet<Card>) {
-
-	let mut hbynum: HashMap<i32, Vec<Card>> = HashMap::with_capacity(12);
-	let mut hbysuit: HashMap<char, Vec<Card>> = HashMap::with_capacity(12);
-
-	let local_hand_hs: HashSet<Card> =  hand.iter().cloned().collect();
-
-	let mut sets: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
-	let mut runs: Vec<_> = Vec::with_capacity(12);
-
-	for card in local_hand_hs.iter() {
-		hbynum.insert(card.num, Vec::with_capacity(12));
-		hbysuit.insert(card.suit, Vec::with_capacity(12));
-	}
-	for card in local_hand_hs.iter() {
-		hbynum.get_mut(&card.num).unwrap().push(*card);
-		hbysuit.get_mut(&card.suit).unwrap().push(*card);
-	}
-
-	for num in hbynum.keys() {
-		match hbynum[num].len() {
-			1 | 2 => {},
-			3 | 4 => {
-				let mut _tmphs = HashSet::with_capacity(12);
-				for card in &hbynum[num] {
-					_tmphs.insert(*card);
-				}
-				sets.insert(*num, _tmphs);
-			},
-			_ => panic!("More than 4 kinds of same number? Impossible!"),
-		}
-	}
-
-	for st in hbysuit.keys() {
-		let _runs = melder::get_runs::get_runs(&hbysuit[st]);
-
-		for run in _runs.iter().cloned() {
-			match run.len() {
-				0 ..= 2 => {},
-				3 ..=12 => runs.push(run),
-				_ => panic!("can't make bigger straights."),
-			}
-		}
-	}
-
-	let deadwood = melder::get_deadwood::get_deadwood(&local_hand_hs, &mut sets, &mut runs);
-
-	(sets, runs, deadwood)
-
-}
 
 fn print_melds_and_deadwood(hand: &HashSet<Card>) {
-	let (sets, runs, deadwood) = melds(&hand);
+	let (sets, runs, deadwood) = melder::get_melds::get_melds(&hand);
 	let mut runs_sorted = Vec::with_capacity(12);
 
 	print!("\n");
@@ -350,7 +300,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 	let mut deadwood_count = 0;
 	let mut deadwood_count_aft_drop = 0;
 
-	let (_sets, _runs, deadwood) = melds(&hand.iter().cloned().collect());
+	let (_sets, _runs, deadwood) = melder::get_melds::get_melds(&hand.iter().cloned().collect());
 
 	let mut deadwood_sorted: Vec<Card> = deadwood.iter().cloned().collect();
 	deadwood_sorted.sort();
@@ -427,7 +377,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 
 fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 
-	let (_pre_sets, _pre_runs, pre_deadwood) = melds(hand);
+	let (_pre_sets, _pre_runs, pre_deadwood) = melder::get_melds::get_melds(hand);
 
 	// let mut pre_deadwood_count = 0;
 
@@ -443,7 +393,7 @@ fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 
 	big_hand.insert(*candidate);
 
-	let (_aft_sets, _aft_runs, aft_deadwood) = melds(&big_hand);
+	let (_aft_sets, _aft_runs, aft_deadwood) = melder::get_melds::get_melds(&big_hand);
 
 	// let mut aft_deadwood_count = 0;
 
