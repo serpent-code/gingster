@@ -297,7 +297,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 		panic!("drop() called with less than 11 cards.");
 	}
 
-	let mut deadwood_count = 0;
+	let mut deadwood_count_bef_drop = 0;
 	let mut deadwood_count_aft_drop = 0;
 
 	let (_sets, _runs, deadwood) = melder::get_melds::get_melds(&hand.iter().cloned().collect());
@@ -324,14 +324,14 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 	let dropped_card = deadwood_sorted.pop().unwrap();
 
 	for card in deadwood.iter() {
-		deadwood_count += card.deadwood;
+		deadwood_count_bef_drop += card.deadwood;
 	}
 
 	for card in deadwood_sorted.iter() {
 		deadwood_count_aft_drop += card.deadwood;
 	}
 
-	match deadwood_count {
+	match deadwood_count_bef_drop {
 		0 => panic!("Big gin should've been handled before"),
 		1 ..= 10 => {
 			println!("Drop {} and Knock!" , dropped_card);
@@ -350,17 +350,13 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 							print_melds_and_deadwood(&hand);
 							std::process::exit(0);
 						},
-						_ => {println!("Drop {}" , dropped_card);},
+						_ => println!("Drop {}" , dropped_card),
 					}
-					
 				},
-				_ => {println!("Drop {}" , dropped_card);},
+				_ => println!("Drop {}" , dropped_card),
 			}
 		},
-
-		_ => {
-			println!("Drop {}" , dropped_card);
-		},
+		_ => println!("Drop {}" , dropped_card),
 	}
 
 	hand.remove(&dropped_card);
