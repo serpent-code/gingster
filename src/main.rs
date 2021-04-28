@@ -3,8 +3,9 @@
 // Released under GPL Version 3
 // Please see README and LICENSE for details.
 
-mod melder;
 mod structs;
+mod melder;
+mod evals;
 use std::collections::HashSet;
 use crate::structs::card::*;
 
@@ -133,7 +134,6 @@ fn get_initial_hand() -> HashSet<Card> {
 
 
 fn get_one_card(hand: &HashSet<Card>) -> (bool, Card) {
-	// println!("What did he drop?");
 	let mut input = String::new();
 	std::io::stdin().read_line(&mut input).unwrap();
 	input = input.trim().to_ascii_uppercase();
@@ -234,7 +234,7 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 	if eleventh_card.is_some() {
 		myhand.insert(eleventh_card.unwrap());
 		possible_deck.remove(&eleventh_card.unwrap());
-		let dropped_card = drop(&mut myhand, 1);
+		let dropped_card = drop(&mut myhand, 1, &possible_deck);
 		card_stream.push(dropped_card);
 	}
 
@@ -250,7 +250,7 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 			myhand.insert(picked_card);
 			possible_deck.remove(&picked_card);
 		}
-		let dropped_card = drop(&mut myhand, 1);
+		let dropped_card = drop(&mut myhand, 1, &possible_deck);
 		card_stream.push(dropped_card);
 	}
 
@@ -279,7 +279,7 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 
 		possible_deck.remove(&faceup_card);
 
-		let dropped_card = drop(&mut myhand, round);
+		let dropped_card = drop(&mut myhand, round, &possible_deck);
 
 		card_stream.push(dropped_card);
 
@@ -291,7 +291,7 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 
 
 // hand is 11 cards here
-fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
+fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) -> Card {
 
 	if hand.len() < 11 {
 		panic!("drop() called with less than 11 cards.");
@@ -320,14 +320,18 @@ fn drop(hand: &mut HashSet<Card> , round: i32) -> Card {
 		_ => {},
 	}
 
-
-	let dropped_card = deadwood_sorted.pop().unwrap();
-
 	for card in deadwood.iter() {
 		deadwood_count_bef_drop += card.deadwood;
 	}
 
-	for card in deadwood_sorted.iter() {
+	// let dropped_card = deadwood_sorted.pop().unwrap();
+
+	let dropped_card = evals::eval_drop::eval_drop(&deadwood_sorted, possible_deck);
+
+	let mut deadwood_aft_drop: HashSet<Card> = deadwood.iter().cloned().collect();
+	deadwood_aft_drop.remove(&dropped_card);
+
+	for card in deadwood_aft_drop {
 		deadwood_count_aft_drop += card.deadwood;
 	}
 
