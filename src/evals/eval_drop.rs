@@ -15,6 +15,13 @@ pub fn eval_drop(deadwood_sorted: &Vec<Card>, possible_deck: &HashSet<Card>) -> 
 	let mut scores_hm_two_straights: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
 	let mut scores_hm_final: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
 
+	let mut very_verbose = false;
+	for argument in std::env::args() {
+		if argument == "--very-verbose" {
+			very_verbose = true;
+		}
+	}
+
 	// Initialize scores_hms:
 
 	for i in 0..=4 {
@@ -170,21 +177,22 @@ pub fn eval_drop(deadwood_sorted: &Vec<Card>, possible_deck: &HashSet<Card>) -> 
 		trash.insert(card.to_owned());
 	}
 
-	print!("Trash: [ ");
-	for card in &trash {
-		print!("{} ", card );
-	}
-	println!("]");
-
-	println!("Scores_hm_final:");
-	for (key, value) in &scores_hm_final {
-		print!("{} : [ ", key);
-		for card in value {
+	if very_verbose {
+		print!("Trash: [ ");
+		for card in &trash {
 			print!("{} ", card );
 		}
 		println!("]");
-	}
 
+		println!("Scores_hm_final:");
+		for (key, value) in &scores_hm_final {
+			print!("{} : [ ", key);
+			for card in value {
+				print!("{} ", card );
+			}
+			println!("]");
+		}
+	}
 
 	let mut trash_sorted: Vec<Card> = trash.iter().cloned().collect();
 	trash_sorted.sort();
