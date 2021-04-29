@@ -427,7 +427,7 @@ fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 	// 	aft_deadwood_count += card.deadwood;
 	// }
 
-	if pre_deadwood.len() >= aft_deadwood.len() || candidate.num <= 3 {
+	if aft_deadwood.len() < pre_deadwood.len() || candidate.num <= 3 {
 		return true;
 	}
 
