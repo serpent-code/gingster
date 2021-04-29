@@ -349,12 +349,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 		// Early game
 		1 ..= 5 => {
 			match can_knock {
-				true => {
-					println!("Drop {} and Knock!" , dropped_highest_card);
-					hand.remove(&dropped_highest_card);
-					print_melds_and_deadwood(&hand);
-					std::process::exit(0);
-				},
+				true  => knock(hand, dropped_highest_card),
 				false => println!("Drop {}" , dropped_eval_card),
 			}
 		},
@@ -363,12 +358,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 			match can_knock {
 				true => {
 					match deadwood_count_aft_highest_drop {
-						0 ..= 7 => {
-							println!("Drop {} and Knock!" , dropped_highest_card);
-							hand.remove(&dropped_highest_card);
-							print_melds_and_deadwood(&hand);
-							std::process::exit(0);
-						},
+						0 ..= 7 => knock(hand, dropped_highest_card),
 						_ => println!("Drop {}" , dropped_eval_card),
 					}
 				},
@@ -380,12 +370,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 			match can_knock {
 				true => {
 					match deadwood_count_aft_highest_drop {
-						0 ..= 2 => {
-							println!("Drop {} and Knock!" , dropped_highest_card);
-							hand.remove(&dropped_highest_card);
-							print_melds_and_deadwood(&hand);
-							std::process::exit(0);
-						},
+						0 ..= 2 => knock(hand, dropped_highest_card),
 						_ => println!("Drop {}" , dropped_eval_card),
 					}
 				},
@@ -433,4 +418,11 @@ fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 
 	false
 
+}
+
+fn knock(hand: &mut HashSet<Card>, knock_card: Card) {
+	println!("Drop {} and Knock!" , &knock_card);
+	hand.remove(&knock_card);
+	print_melds_and_deadwood(&hand);
+	std::process::exit(0);
 }
