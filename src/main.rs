@@ -307,8 +307,8 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 		panic!("drop() called with less than 11 cards.");
 	}
 
-	let mut deadwood_count_bef_drop = 0;
-	let mut deadwood_count_aft_drop = 0;
+	let mut deadwood_count_aft_highest_drop = 0;
+	let mut can_knock = false;
 
 	let (_sets, _runs, deadwood) = melder::get_melds::get_melds(&hand.iter().cloned().collect());
 
@@ -330,55 +330,74 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 		_ => {},
 	}
 
-	for card in deadwood.iter() {
-		deadwood_count_bef_drop += card.deadwood;
+	let dropped_eval_card = evals::eval_drop::eval_drop(&deadwood_sorted, possible_deck);
+
+	let dropped_highest_card = deadwood_sorted.pop().unwrap();
+
+	for card in deadwood_sorted {
+		deadwood_count_aft_highest_drop += card.deadwood;
 	}
 
-	// let dropped_card = deadwood_sorted.pop().unwrap();
-
-	let dropped_card = evals::eval_drop::eval_drop(&deadwood_sorted, possible_deck);
-
-	let mut deadwood_aft_drop: HashSet<Card> = deadwood.iter().cloned().collect();
-	deadwood_aft_drop.remove(&dropped_card);
-
-	for card in deadwood_aft_drop {
-		deadwood_count_aft_drop += card.deadwood;
+	if deadwood_count_aft_highest_drop <= 10 {
+		can_knock = true;
 	}
 
 	println!();
 
-	match deadwood_count_bef_drop {
-		0 => panic!("Big gin should've been handled before"),
-		1 ..= 10 => {
-			println!("Drop {} and Knock!" , dropped_card);
-			hand.remove(&dropped_card);
-			print_melds_and_deadwood(&hand);
-			std::process::exit(0);
-		},
 
-		11 ..= 20 => {
-			match round {
-				1 ..= 20 => {
-					match deadwood_count_aft_drop {
-						1 ..= 10 => {
-							println!("Drop {} and Knock!" , dropped_card);
-							hand.remove(&dropped_card);
+	match round {
+		// Early game
+		1 ..= 5 => {
+			match can_knock {
+				true => {
+					println!("Drop {} and Knock!" , dropped_highest_card);
+					hand.remove(&dropped_highest_card);
+					print_melds_and_deadwood(&hand);
+					std::process::exit(0);
+				},
+				false => println!("Drop {}" , dropped_eval_card),
+			}
+		},
+		// Middle game
+		6 ..= 10 => {
+			match can_knock {
+				true => {
+					match deadwood_count_aft_highest_drop {
+						0 ..= 7 => {
+							println!("Drop {} and Knock!" , dropped_highest_card);
+							hand.remove(&dropped_highest_card);
 							print_melds_and_deadwood(&hand);
 							std::process::exit(0);
 						},
-						_ => println!("Drop {}" , dropped_card),
+						_ => println!("Drop {}" , dropped_eval_card),
 					}
 				},
-				_ => println!("Drop {}" , dropped_card),
+				false => println!("Drop {}" , dropped_eval_card),
 			}
 		},
-		_ => println!("Drop {}" , dropped_card),
+		// Endgame
+		_ => {
+			match can_knock {
+				true => {
+					match deadwood_count_aft_highest_drop {
+						0 ..= 2 => {
+							println!("Drop {} and Knock!" , dropped_highest_card);
+							hand.remove(&dropped_highest_card);
+							print_melds_and_deadwood(&hand);
+							std::process::exit(0);
+						},
+						_ => println!("Drop {}" , dropped_eval_card),
+					}
+				},
+				false => println!("Drop {}" , dropped_eval_card),
+			}
+		},
 	}
 
-	hand.remove(&dropped_card);
 
-	dropped_card
+	hand.remove(&dropped_eval_card);
 
+	dropped_eval_card
 
 }
 
