@@ -25,7 +25,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 	let mut smlrun: Vec<Card> = Vec::with_capacity(12);
 
 	let intersections_pre: Vec<Card> = setshs.intersection(&runshs).cloned().collect();
-	let mut intersections: Vec<Card> = Vec::with_capacity(12);
+	let mut intersections_vec: Vec<Card> = Vec::with_capacity(12);
 
 	let mut intersections_hm: HashMap<char, HashSet<Card>> = HashMap::with_capacity(4);
 	for card in intersections_pre.iter() {
@@ -53,28 +53,24 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 			smlrun.sort();
 		}
 		if bigrun.last().unwrap() == maxcard {
-			intersections.push(*maxcard);
+			intersections_vec.push(*maxcard);
 			if intersections_hm[suit].contains(&bigrun[bigrun.len() - 2]) {
-				intersections.push(bigrun[bigrun.len() - 2]);
+				intersections_vec.push(bigrun[bigrun.len() - 2]);
 			}
 		}
 		if smlrun.first().unwrap() == mincard {
-			intersections.push(*mincard);
+			intersections_vec.push(*mincard);
 			if intersections_hm[suit].contains(&smlrun[1]) {
-				intersections.push(smlrun[1]);
+				intersections_vec.push(smlrun[1]);
 			}
 		}
-		let intersections_hs: HashSet<Card> = intersections.iter().cloned().collect();
+		let intersections_hs: HashSet<Card> = intersections_vec.iter().cloned().collect();
 		for card in intersections_hm[suit].iter() {
 			if !intersections_hs.contains(card) {
-				intersections.push(*card);
+				intersections_vec.push(*card);
 			}
 		}
 	}
-
-	let intersections_hs: HashSet<Card> = intersections.iter().cloned().collect();
-	let intersections_vec: Vec<Card> = intersections_hs.iter().cloned().collect();
-
 
 	if intersections_vec.len() == 0 {
 		let (sets, runs) = copy_sets_and_runs(sets_in, runs_in);
