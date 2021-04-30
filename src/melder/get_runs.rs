@@ -41,7 +41,9 @@ pub fn get_runs(inp: &Vec<Card>) -> Vec<HashSet<Card>> {
 				}
 			}
 		}
-		output_cards.push(_cardrun);
+		if _cardrun.len() >= 3 {
+			output_cards.push(_cardrun);
+		}
 		_cardrun = HashSet::with_capacity(12);
 	}
 

@@ -48,8 +48,8 @@ pub fn get_melds(hand: &HashSet<Card>) -> (HashMap<i32, HashSet<Card>>, Vec<Hash
 		}
 	}
 
-	let deadwood = get_deadwood(&local_hand_hs, &mut sets, &mut runs);
+	let (out_sets, out_runs, deadwood) = get_deadwood(&local_hand_hs, &sets, &runs);
 
-	(sets, runs, deadwood)
+	(out_sets, out_runs, deadwood)
 
 }

@@ -2,28 +2,27 @@ use std::collections::{HashMap, HashSet};
 use crate::structs::card::*;
 use crate::melder::get_runs::*;
 
-pub fn get_deadwood(hand: &HashSet<Card>, sets: &mut HashMap<i32, HashSet<Card>>,
-	runs: &mut Vec<HashSet<Card>>) -> HashSet<Card> {
+pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
+	runs_in: &Vec<HashSet<Card>>) -> (HashMap<i32, HashSet<Card>>, Vec<HashSet<Card>>, HashSet<Card>) {
+// -> sets, runs, deadwood
 
+	let mut all_results = Vec::with_capacity(12);
 	let mut runshs = HashSet::with_capacity(12);
 	let mut setshs = HashSet::with_capacity(12);
-	let mut processed = HashSet::with_capacity(3);
 
-	for num in sets.keys() {
-		for card in sets[num].iter() {
+	for num in sets_in.keys() {
+		for card in sets_in[num].iter() {
 			setshs.insert(*card);
 		}
 	}
-	for run in runs.iter() {
+	for run in runs_in.iter() {
 		for card in run.iter() {
 			runshs.insert(*card);
 		}
 	}
 
-	let mut _ii = 0;
 	let mut bigrun: Vec<Card> = Vec::with_capacity(12);
 	let mut smlrun: Vec<Card> = Vec::with_capacity(12);
-	let mut runs_contain_inter = false;
 
 	let intersections_pre: Vec<Card> = setshs.intersection(&runshs).cloned().collect();
 	let mut intersections: Vec<Card> = Vec::with_capacity(12);
@@ -39,7 +38,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets: &mut HashMap<i32, HashSet<Card>>
 	for suit in intersections_hm.keys() {
 		let maxcard = intersections_hm[suit].iter().max().unwrap();
 		let mincard = intersections_hm[suit].iter().min().unwrap();
-		for run in runs.iter() {
+		for run in runs_in.iter() {
 			if run.contains(maxcard) {
 				for card in run.iter() {
 					bigrun.push(*card);
@@ -73,777 +72,478 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets: &mut HashMap<i32, HashSet<Card>>
 		}
 	}
 
-	// print!("intersections:");
-	// for ccc in intersections.iter() {
-	// 	print!(" {} ", ccc );
-	// }
-	// print!("\n");
+	let intersections_hs: HashSet<Card> = intersections.iter().cloned().collect();
+	let intersections_vec: Vec<Card> = intersections_hs.iter().cloned().collect();
 
 
-	'main_inter: for card in intersections.iter() {
-		'foo: for run in runs.iter() {
-			if run.contains(card) {
-				runs_contain_inter = true;
-				break 'foo;
-			}
-		}
-		if sets.get(&card.num) == None || !runs_contain_inter 
-		|| processed.contains(&card.num) || runs.len() == 0 {
-			continue 'main_inter;
-		}
+	if intersections_vec.len() == 0 {
+		let (sets, runs) = copy_sets_and_runs(sets_in, runs_in);
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+	}
+
+	else if intersections_vec.len() == 1 {
+		// give it to set:
+		let (sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		let mut runs_run_index = 0;
 		for (i, run) in runs.iter().enumerate() {
-			if run.contains(card) {
-				_ii = i;
+			if run.contains(&intersections_vec[0]) {runs_run_index = i;	break;}
+		}
+		runs[runs_run_index].remove(&intersections_vec[0]);
+		let new_runs = get_runs(&runs[runs_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give it to straight:
+		let (mut sets, runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
+		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[0].num);
+		}
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+	}
+
+	else if intersections_vec.len() == 2 {
+		// give first card to set, second to set:
+
+		let (sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		let mut runs_first_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
+		}
+		runs[runs_first_run_index].remove(&intersections_vec[0]);
+		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_first_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		if runs.len() != 0 {
+			let mut runs_second_run_index = 0;
+			for (i, run) in runs.iter().enumerate() {
+				if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
+			}
+			runs[runs_second_run_index].remove(&intersections_vec[1]);
+			let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
+			runs.swap_remove(runs_second_run_index);
+			for run in new_runs {
+				runs.push(run);
+			}
+		}
+		
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give first card to straight, second to set:
+
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
+		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[0].num);
+		}
+
+		let mut runs_second_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
+		}
+		runs[runs_second_run_index].remove(&intersections_vec[1]);
+		let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_second_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give first card to set, second to straight:
+
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		let mut runs_first_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
+		}
+		runs[runs_first_run_index].remove(&intersections_vec[0]);
+		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_first_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
+		if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[1].num);
+		}
+
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give first card to straight, second to straight:
+
+		let (mut sets, runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
+		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[0].num);
+		}
+
+		if sets.contains_key(&intersections_vec[1].num) {
+			sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
+			if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
+				sets.remove(&intersections_vec[1].num);
 			}
 		}
 
-		let mut num_of_inters_same_num = 0;
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
 
-		for _card in intersections.iter(){
-			if _card.num == card.num {
-				num_of_inters_same_num += 1;
+	}
+
+	else if intersections_vec.len() == 3 {
+		// give first card to set, second to set, third to set:
+
+		let (sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		let mut runs_first_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
+		}
+		runs[runs_first_run_index].remove(&intersections_vec[0]);
+		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_first_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		if runs.len() != 0 {
+			let mut runs_second_run_index = 0;
+			for (i, run) in runs.iter().enumerate() {
+				if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
+			}
+			runs[runs_second_run_index].remove(&intersections_vec[1]);
+			let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
+			runs.swap_remove(runs_second_run_index);
+			for run in new_runs {
+				runs.push(run);
 			}
 		}
 
-		let mut iii = 0;
-
-		let mut run_sorted: Vec<Card> = runs[_ii].iter().cloned().collect();
-		run_sorted.sort();
-
-
-		for (i, cd) in run_sorted.iter().enumerate() {
-			if *cd == *card {
-				iii = i;
-				break;
+		if runs.len() != 0 {
+			let mut runs_third_run_index = 0;
+			for (i, run) in runs.iter().enumerate() {
+				if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
+			}
+			runs[runs_third_run_index].remove(&intersections_vec[2]);
+			let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
+			runs.swap_remove(runs_third_run_index);
+			for run in new_runs {
+				runs.push(run);
 			}
 		}
 
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
 
-		if num_of_inters_same_num == 1 {
+		// give first card to set, second to set, third to straight:
 
-			match runs[_ii].len() {
-				3 => {
-					match iii {
-						0 | 1 => {
-							match sets[&card.num].len() {
-								3 => {sets.remove(&card.num);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						2 => {
-							match sets[&card.num].len() {
-								3 => {runs.swap_remove(_ii);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						_ => {},
-					}
-				},
-				4 => {
-					match iii {
-						0 | 3 => {runs[_ii].remove(card);},
-						1 | 2 => {
-							match sets[&card.num].len() {
-								3 => {sets.remove(&card.num);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						_ => {},
-					}
-				},
-				5 => {
-					match iii {
-						0 | 4 => {runs[_ii].remove(card);},
-						1 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.first().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-							
-						},
-						2 => {
-							match sets[&card.num].len() {
-								3 => {sets.remove(&card.num);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						3 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.last().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}							
-						},
-						_ => {},
-					}
-				},
-				6 => {
-					match iii {
-						0 | 5 => {runs[_ii].remove(card);},
-						1 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.first().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-							
-						},
-						2 => {
-							match sets[&card.num].len() {
-								3 => {
-									for cardd in &run_sorted[..3] {
-										runs[_ii].remove(cardd);
-									}
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-							
-						},
-						3 => {
-							match sets[&card.num].len() {
-								3 => {sets.remove(&card.num);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						4 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.last().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-							
-						},
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-						_ => {},
-					}
-				},
-				7 => {
-					match iii {
-						0 | 6 => {runs[_ii].remove(card);},
-						1 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.first().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						2 => {
-							match sets[&card.num].len() {
-								3 => {
-									for cardd in &run_sorted[..3] {
-										runs[_ii].remove(cardd);
-									}
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						3 => {
-							match sets[&card.num].len() {
-								3 => {
-									let mut temphs = HashSet::with_capacity(12);
-									for cardd in &run_sorted[3..] {
-										runs[_ii].remove(cardd);
-										temphs.insert(*cardd);
-									}
-									temphs.remove(&run_sorted[3]);
-									runs.push(temphs);
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-							
-						},
-						4 => {
-							match sets[&card.num].len() {
-								3 => {sets.remove(&card.num);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						5 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.last().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						_ => {},
-					}
-				},
-				8 => {
-					match iii {
-						0 | 7 => {runs[_ii].remove(card);},
-						1 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.first().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						2 => {
-							match sets[&card.num].len() {
-								3 => {
-									for cardd in &run_sorted[..3] {
-										runs[_ii].remove(cardd);
-									}
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						3 | 4 => {
-							match sets[&card.num].len() {
-								3 => {
-									let mut temphs = HashSet::with_capacity(12);
-									for cardd in &run_sorted[iii..] {
-										runs[_ii].remove(cardd);
-										temphs.insert(*cardd);
-									}
-									temphs.remove(&run_sorted[iii]);
-									runs.push(temphs);
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						5 => {
-							match sets[&card.num].len() {
-								3 => {sets.remove(&card.num);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						6 => {
-							match sets[&card.num].len() {
-								3 => {
-									runs[_ii].remove(card);
-									runs[_ii].remove(run_sorted.last().unwrap());
-								},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						_ => {},
+		let mut runs_first_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
+		}
+		runs[runs_first_run_index].remove(&intersections_vec[0]);
+		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_first_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
 
-					}
-				},
-				9 => {
-					match iii {
-						0 | 8 => {runs[_ii].remove(card);},
-						1 => {
-							runs[_ii].remove(card);
-							runs[_ii].remove(run_sorted.first().unwrap());
-						},
-						2 => {
-							for cardd in &run_sorted[..3] {
-								runs[_ii].remove(cardd);
-							}
-						},
-						3 ..= 5 => {
-							let mut temphs = HashSet::with_capacity(12);
-							for cardd in &run_sorted[iii..] {
-								runs[_ii].remove(cardd);
-								temphs.insert(*cardd);
-							}
-							temphs.remove(&run_sorted[iii]);
-							runs.push(temphs);
-						},
-						6 => {
-							match sets[&card.num].len() {
-								3 => {sets.remove(&card.num);},
-								4 => {sets.get_mut(&card.num).unwrap().remove(card);},
-								_ => {},
-							}
-						},
-						7 => {
-							runs[_ii].remove(card);
-							runs[_ii].remove(run_sorted.last().unwrap());
-						},
+		if runs.len() != 0 {
+			let mut runs_second_run_index = 0;
+			for (i, run) in runs.iter().enumerate() {
+				if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
+			}
+			runs[runs_second_run_index].remove(&intersections_vec[1]);
+			let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
+			runs.swap_remove(runs_second_run_index);
+			for run in new_runs {
+				runs.push(run);
+			}
+		}
+		
+		sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
+		if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[2].num);
+		}
 
-						_ => {},
-					}
-				},
-				_ => {},
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give first card to set, second to straight, third to set:
+
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		let mut runs_first_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
+		}
+		runs[runs_first_run_index].remove(&intersections_vec[0]);
+		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_first_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
+		if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[1].num);
+		}
+
+		if runs.len() != 0 {
+			let mut runs_third_run_index = 0;
+			for (i, run) in runs.iter().enumerate() {
+				if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
+			}
+			runs[runs_third_run_index].remove(&intersections_vec[2]);
+			let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
+			runs.swap_remove(runs_third_run_index);
+			for run in new_runs {
+				runs.push(run);
 			}
 		}
 
-		else if num_of_inters_same_num == 2 {
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
 
-			let mut isr = 0;
-			let mut other_inter = DECK[0];
+		// give first card to set, second to straight, third to straight:
 
-			'fooz: for _card in intersections.iter() {
-				if _card.num == card.num && _card.suit != card.suit {
-					other_inter = *_card;
-					for (i, run) in runs.iter().enumerate() {
-						if run.contains(&other_inter) {
-							isr = i;
-							break 'fooz;
-						}
-					}
-				}
-			}
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-			let mut isi = 0;
-
-			let mut second_run_sorted: Vec<Card> = runs[isr].iter().cloned().collect();
-			second_run_sorted.sort();
-
-			for (i, cd) in second_run_sorted.iter().enumerate() {
-				if cd.num == card.num {
-					isi = i;
-					break;
-				}
-			}
-
-			let first_run_len = runs[_ii].len();
-			let second_run_len = runs[isr].len();
-
-			match sets[&card.num].len() {
-				3 => {
-					match first_run_len {
-						3 => {
-							sets.remove(&card.num);
-						},
-						4 => {
-							match second_run_len {
-								3 => {sets.remove(&card.num);},
-								4 => {
-									if (iii == 0 || iii == first_run_len - 1)
-									&& (isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-									}
-									else {
-										sets.remove(&card.num);
-									}
-								},
-								5 | 6 => {
-									if (iii == 0 || iii == first_run_len - 1)
-									&& (isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-									}
-									else if (iii == 0 || iii == first_run_len - 1) && isi == 1 {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[isr].remove(second_run_sorted.first().unwrap());
-									}
-									else if (isi == 0 || isi == second_run_len - 1) && iii == 1 {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[_ii].remove(run_sorted.first().unwrap());
-									}
-									else {
-										sets.remove(&card.num);
-									}
-								},
-								_ => {},
-							}
-						},
-						5 => {
-							match second_run_len {
-								3 => {sets.remove(&card.num);},
-								4 | 5 => {
-									if (iii == 0 || iii == first_run_len - 1)
-									&& (isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-									}
-									else if (iii == 0 || iii == first_run_len - 1) && isi == 1 {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[isr].remove(second_run_sorted.first().unwrap());
-									}
-									else if (isi == 0 || isi == second_run_len - 1) && iii == 1 {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[_ii].remove(run_sorted.first().unwrap());
-									}
-									else {
-										sets.remove(&card.num);
-									}
-								},
-								_ => {},
-							}
-						},
-						6 => {
-							match second_run_len {
-								3 => {sets.remove(&card.num);},
-								4 => {
-									if (iii == 0 || iii == first_run_len - 1)
-									&& (isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-									}
-									else if (iii == 0 || iii == first_run_len - 1) && isi == 1 {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[isr].remove(second_run_sorted.first().unwrap());
-									}
-									else if (isi == 0 || isi == second_run_len - 1) && iii == 1 {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[_ii].remove(run_sorted.first().unwrap());
-									}
-									else {
-										sets.remove(&card.num);
-									}
-								},
-								_ => {},
-							}
-						},
-						7 => {
-							match second_run_len {
-								3 => {sets.remove(&card.num);},
-								_ => {},
-							}
-						},
-						_ => {},
-					}
-				},
-				4 => {
-					match first_run_len {
-						3 => {
-							match second_run_len {
-								3 => {
-									match iii {
-										0 => {
-											match isi {
-												0 | 1 => {sets.remove(&card.num);},
-												2 => {
-													sets.get_mut(&card.num).unwrap().remove(&card);
-													runs.swap_remove(isr);
-												},
-												_ => {},
-											}
-										},
-										1 | 2 => {
-											match isi {
-												0 | 1 => {
-													sets.get_mut(&card.num).unwrap()
-														.remove(&other_inter);
-													runs.swap_remove(_ii);
-												},
-												2 => {
-													sets.get_mut(&card.num).unwrap().remove(&card);
-													runs.swap_remove(isr);
-												},
-												_ => {},
-											}
-										},
-										_ => {},
-									}
-								},
-								4 => {
-									if isi == 0 {
-										runs[isr].remove(second_run_sorted.first().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&card);
-									}
-									else if isi == second_run_len - 1 {
-										runs[isr].remove(second_run_sorted.last().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&card);
-									}
-									else {
-										match iii {
-											0 => {sets.remove(&card.num);},
-											1 | 2 => {
-												sets.get_mut(&card.num).unwrap().remove(&other_inter);
-												runs.swap_remove(_ii);
-											},
-											_ => {},
-										}
-									}
-								},
-								5 | 6 => {
-									if isi == 0 {
-										runs[isr].remove(second_run_sorted.first().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&card);
-									}
-									else if isi == second_run_len - 1 {
-										runs[isr].remove(second_run_sorted.last().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&card);
-									}
-									else if isi == 1 {
-										sets.get_mut(&card.num).unwrap().remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[isr].remove(second_run_sorted.first().unwrap());
-									}
-									else if isi == second_run_len - 2 {
-										sets.get_mut(&card.num).unwrap().remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[isr].remove(second_run_sorted.last().unwrap());
-									}
-									else {
-										match iii {
-											0 => {sets.remove(&card.num);},
-											1 | 2 => {
-												sets.get_mut(&card.num).unwrap().remove(&other_inter);
-												runs.swap_remove(_ii);
-											},
-											_ => {},
-										}
-									}
-								},
-								_ => {},
-							}
-						},
-						4 => {
-							match second_run_len {
-								3 => {
-									if iii == 0 {
-										runs[_ii].remove(run_sorted.first().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == second_run_len - 1 {
-										runs[_ii].remove(run_sorted.last().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else {
-										match isi {
-											0 => {sets.remove(&card.num);},
-											1 | 2 => {
-												sets.get_mut(&card.num).unwrap().remove(&card);
-												runs.swap_remove(isr);
-											},
-											_ => {},
-										}
-									}
-								},
-								4 => {
-									if (iii == 0 || iii == first_run_len -  1)
-									&& (isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-									}
-									else if (iii == 0 || iii == first_run_len - 1)
-									&& !(isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if (isi == 0 || isi == second_run_len - 1)
-									&& !(iii == 0 || iii == first_run_len -  1) {
-										runs[isr].remove(&other_inter);
-										sets.get_mut(&card.num).unwrap().remove(&card);
-									}
-									else {
-										sets.remove(&card.num);
-									}
-								},
-								5 => {
-									if (iii == 0 || iii == first_run_len -  1)
-									&& (isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-									}
-									else if (iii == 0 || iii == first_run_len - 1)
-									&& !(isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if (isi == 0 || isi == second_run_len - 1)
-									&& !(iii == 0 || iii == first_run_len -  1) {
-										runs[isr].remove(&other_inter);
-										sets.get_mut(&card.num).unwrap().remove(&card);
-									}
-									else if isi == 1 {
-										sets.get_mut(&card.num).unwrap().remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[isr].remove(run_sorted.first().unwrap());
-									}
-									else if isi == 3 {
-										sets.get_mut(&card.num).unwrap().remove(&card);
-										runs[isr].remove(&other_inter);
-										runs[isr].remove(run_sorted.last().unwrap());
-									}
-									else {
-										sets.remove(&card.num);
-									}
-								},
-								_ => {},
-							}
-						},
-						5 => {
-							match second_run_len {
-								3 => {
-									if iii == 0 {
-										runs[_ii].remove(run_sorted.first().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == second_run_len - 1 {
-										runs[_ii].remove(run_sorted.last().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == 1 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.first().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == 3 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.last().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else {
-										match isi {
-											0 => {sets.remove(&card.num);},
-											1 | 2 => {
-												sets.get_mut(&card.num).unwrap().remove(&card);
-												runs.swap_remove(isr);
-											},
-											_ => {},
-										}
-									}
-								},
-								4 => {
-									if (iii == 0 || iii == first_run_len -  1)
-									&& (isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										runs[isr].remove(&other_inter);
-									}
-									else if (iii == 0 || iii == first_run_len - 1)
-									&& !(isi == 0 || isi == second_run_len - 1) {
-										runs[_ii].remove(&card);
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if (isi == 0 || isi == second_run_len - 1)
-									&& !(iii == 0 || iii == first_run_len -  1) {
-										runs[isr].remove(&other_inter);
-										sets.get_mut(&card.num).unwrap().remove(&card);
-									}
-									else if iii == 1 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.first().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == 3 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.last().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else {
-										sets.remove(&card.num);
-									}
-								},
-								_ => {},
-							}
-						},
-						6 => {
-							match second_run_len {
-								3 => {
-									if iii == 0 || iii == first_run_len -  1 {
-										runs[_ii].remove(&card);
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == 1 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.first().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == 4 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.last().unwrap());
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == 2 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.first().unwrap());
-										runs[_ii].remove(&run_sorted[1]);
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-									else if iii == 3 {
-										runs[_ii].remove(&card);
-										runs[_ii].remove(run_sorted.last().unwrap());
-										runs[_ii].remove(&run_sorted[4]);
-										sets.get_mut(&card.num).unwrap().remove(&other_inter);
-									}
-
-								},
-								_ => {},
-							}
-						},
-						_ => {},
-					}
-				},
-				_ => {},
-			}
-			processed.insert(card.num);
+		let mut runs_first_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
+		}
+		runs[runs_first_run_index].remove(&intersections_vec[0]);
+		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_first_run_index);
+		for run in new_runs {
+			runs.push(run);
 		}
 
-		else if num_of_inters_same_num == 3 {
-			// 1 or 2 pillars: keep straights. 3 pillars:
-			//keep sets. in additiong to 4th card check.
+		sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
+		if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[1].num);
+		}
 
-			let mut cleared_sets = false;
-			let mut cleared_runs = false;
-			for run in runs.iter() {
-				if run.len() >= 4 {
-					cleared_sets = true;
-					*sets = HashMap::new();
-				}
+		if sets.contains_key(&intersections_vec[2].num) {
+			sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
+			if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
+				sets.remove(&intersections_vec[2].num);
 			}
-			for set in sets.keys() {
-				if sets[set].len() == 4 {
-					cleared_runs = true;
-					*runs = Vec::new();
-				}
-			}
+		}
+		
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
 
-			if !cleared_runs && !cleared_sets {
-				match sets.len() {
-					1 | 2 => {
-						*sets = HashMap::new();
-					},
-					3 => {
-						*runs = Vec::new();
-					},
-					_ => {},
-				}
-			}
+		// give first card to straight, second to set, third to set:
 
-			break 'main_inter;
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
+		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[0].num);
+		}
+
+		let mut runs_second_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
+		}
+		runs[runs_second_run_index].remove(&intersections_vec[1]);
+		let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_second_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		if runs.len() != 0 {
+			let mut runs_third_run_index = 0;
+			for (i, run) in runs.iter().enumerate() {
+				if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
+			}
+			runs[runs_third_run_index].remove(&intersections_vec[2]);
+			let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
+			runs.swap_remove(runs_third_run_index);
+			for run in new_runs {
+				runs.push(run);
+			}
+		}
+
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give first card to straight, second to set, third to straight:
+
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
+		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[0].num);
+		}
+
+		let mut runs_second_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
+		}
+		runs[runs_second_run_index].remove(&intersections_vec[1]);
+		let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_second_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		if sets.contains_key(&intersections_vec[2].num) {
+			sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
+			if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
+				sets.remove(&intersections_vec[2].num);
+			}
+		}
+
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give first card to straight, second to straight, third to set:
+
+		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
+		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[0].num);
+		}
+
+		if sets.contains_key(&intersections_vec[1].num) {
+			sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
+			if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
+				sets.remove(&intersections_vec[1].num);
+			}
+		}
+		
+		let mut runs_third_run_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
+		}
+		runs[runs_third_run_index].remove(&intersections_vec[2]);
+		let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_third_run_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// give first card to straight, second to straight, third to straight:
+
+		let (mut sets, runs) = copy_sets_and_runs(sets_in, runs_in);
+
+		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
+		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
+			sets.remove(&intersections_vec[0].num);
+		}
+
+		if sets.contains_key(&intersections_vec[1].num) {
+			sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
+			if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
+				sets.remove(&intersections_vec[1].num);
+			}
+		}
+
+		if sets.contains_key(&intersections_vec[2].num) {
+			sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
+			if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
+				sets.remove(&intersections_vec[2].num);
+			}
+		}
+
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+	}
+
+	else if intersections_vec.len() > 3 {
+		// trash all sets, only keep straights
+		let (_, runs) = copy_sets_and_runs(sets_in, runs_in);
+		let sets = HashMap::new();
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+
+		// trash all straights, only keep sets
+		let (sets, _) = copy_sets_and_runs(sets_in, runs_in);
+		let runs = Vec::new();
+		let deadwood = get_just_deadwood(hand, &sets, &runs);
+		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+	}
+
+
+	if all_results.len() == 1 {
+		return (all_results[0].0.to_owned(), all_results[0].1.to_owned(), all_results[0].2.to_owned());
+	}
+
+	let mut results_deadwood_vec: Vec<i32> = Vec::with_capacity(12);
+
+	for result in &all_results {
+		let mut deadwood_count = 0;
+
+		for card in &result.2 {
+			deadwood_count += card.deadwood;
+		}
+		results_deadwood_vec.push(deadwood_count);
+	}
+
+	let min_deadwood = match results_deadwood_vec.iter().min() {
+		Some(v) => *v,
+		None => return (all_results[0].0.to_owned(), all_results[0].1.to_owned(), all_results[0].2.to_owned()),
+	};
+
+	for result in &all_results {
+		let mut deadwood_count = 0;
+
+		for card in &result.2 {
+			deadwood_count += card.deadwood;
+		}
+		if min_deadwood == deadwood_count {
+			return (result.0.to_owned(), result.1.to_owned(), result.2.to_owned());
 		}
 	}
 
-	runshs = HashSet::with_capacity(12);
-	setshs = HashSet::with_capacity(12);
+	(all_results[0].0.to_owned(), all_results[0].1.to_owned(), all_results[0].2.to_owned())
+
+}
 
 
-	for num in sets.keys() {
-		for card in sets[num].iter() {
+fn get_just_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
+	runs_in: &Vec<HashSet<Card>>) -> HashSet<Card> {
+	let mut runshs = HashSet::with_capacity(12);
+	let mut setshs = HashSet::with_capacity(12);
+
+
+	for num in sets_in.keys() {
+		for card in sets_in[num].iter() {
 			setshs.insert(*card);
 		}
 	}
-	for run in runs.iter() {
+	for run in runs_in.iter() {
 		for card in run.iter() {
 			runshs.insert(*card);
 		}
@@ -851,43 +551,23 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets: &mut HashMap<i32, HashSet<Card>>
 
 	let all_melds: HashSet<Card> = setshs.union(&runshs).cloned().collect();
 
-	let mut deadwood_hs: HashSet<Card> = hand.difference(&all_melds).cloned().collect();
-
-	let mut deadwood_hm_post_bynum: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
-	let mut deadwood_hm_post_bysuit: HashMap<char, Vec<Card>> = HashMap::with_capacity(12);
-
-	for c in deadwood_hs.iter() {
-		deadwood_hm_post_bynum.insert(c.num, HashSet::with_capacity(4));
-		deadwood_hm_post_bysuit.insert(c.suit, Vec::with_capacity(8));
-	}
-
-	for c in deadwood_hs.iter() {
-		deadwood_hm_post_bynum.get_mut(&c.num).unwrap().insert(*c);
-		deadwood_hm_post_bysuit.get_mut(&c.suit).unwrap().push(*c);
-	}
-
-	for rank in deadwood_hm_post_bynum.keys() {
-		if deadwood_hm_post_bynum[rank].len() >= 3 {
-			sets.insert(*rank, deadwood_hm_post_bynum[rank].clone());
-			for cc in deadwood_hm_post_bynum[rank].iter() {
-				deadwood_hs.remove(cc);
-			}
-		}
-	}
-
-	for suit in deadwood_hm_post_bysuit.keys() {
-		let deadwood_runs_post = get_runs(&deadwood_hm_post_bysuit[suit]);
-		for hs in deadwood_runs_post.iter() {
-			if hs.len() >= 3 {
-				runs.push(hs.clone());
-				for ccc in hs.iter() {
-					deadwood_hs.remove(ccc);
-				}
-			}
-		}
-	}
-
+	let deadwood_hs: HashSet<Card> = hand.difference(&all_melds).cloned().collect();
 
 	deadwood_hs
+}
 
+fn copy_sets_and_runs(sets_in: &HashMap<i32, HashSet<Card>>, runs_in: &Vec<HashSet<Card>>) 
+	-> (HashMap<i32, HashSet<Card>>, Vec<HashSet<Card>>) {
+	let mut sets: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
+	let mut runs: Vec<HashSet<Card>> = Vec::with_capacity(12);
+
+	for (key, value) in sets_in {
+		sets.insert(key.to_owned(), value.to_owned());
+	}
+
+	for run in runs_in {
+		runs.push(run.to_owned());
+	}
+
+	(sets, runs)
 }
