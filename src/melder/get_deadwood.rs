@@ -86,16 +86,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		// give it to set:
 		let (sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		let mut runs_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[0]) {runs_run_index = i;	break;}
-		}
-		runs[runs_run_index].remove(&intersections_vec[0]);
-		let new_runs = get_runs(&runs[runs_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -103,10 +94,8 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		// give it to straight:
 		let (mut sets, runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
-		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[0].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[0]);
+
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
 	}
@@ -116,29 +105,9 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		let mut runs_first_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
-		}
-		runs[runs_first_run_index].remove(&intersections_vec[0]);
-		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_first_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
-		if runs.len() != 0 {
-			let mut runs_second_run_index = 0;
-			for (i, run) in runs.iter().enumerate() {
-				if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
-			}
-			runs[runs_second_run_index].remove(&intersections_vec[1]);
-			let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
-			runs.swap_remove(runs_second_run_index);
-			for run in new_runs {
-				runs.push(run);
-			}
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 		
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -147,21 +116,9 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
-		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[0].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[0]);
 
-		let mut runs_second_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
-		}
-		runs[runs_second_run_index].remove(&intersections_vec[1]);
-		let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_second_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -170,21 +127,9 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		let mut runs_first_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
-		}
-		runs[runs_first_run_index].remove(&intersections_vec[0]);
-		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_first_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
-		sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
-		if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[1].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -193,17 +138,9 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
-		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[0].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[0]);
 
-		if sets.contains_key(&intersections_vec[1].num) {
-			sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
-			if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
-				sets.remove(&intersections_vec[1].num);
-			}
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -215,42 +152,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		let mut runs_first_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
-		}
-		runs[runs_first_run_index].remove(&intersections_vec[0]);
-		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_first_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
-		if runs.len() != 0 {
-			let mut runs_second_run_index = 0;
-			for (i, run) in runs.iter().enumerate() {
-				if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
-			}
-			runs[runs_second_run_index].remove(&intersections_vec[1]);
-			let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
-			runs.swap_remove(runs_second_run_index);
-			for run in new_runs {
-				runs.push(run);
-			}
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 
-		if runs.len() != 0 {
-			let mut runs_third_run_index = 0;
-			for (i, run) in runs.iter().enumerate() {
-				if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
-			}
-			runs[runs_third_run_index].remove(&intersections_vec[2]);
-			let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
-			runs.swap_remove(runs_third_run_index);
-			for run in new_runs {
-				runs.push(run);
-			}
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -259,34 +165,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		let mut runs_first_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
-		}
-		runs[runs_first_run_index].remove(&intersections_vec[0]);
-		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_first_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
-		if runs.len() != 0 {
-			let mut runs_second_run_index = 0;
-			for (i, run) in runs.iter().enumerate() {
-				if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
-			}
-			runs[runs_second_run_index].remove(&intersections_vec[1]);
-			let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
-			runs.swap_remove(runs_second_run_index);
-			for run in new_runs {
-				runs.push(run);
-			}
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 		
-		sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
-		if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[2].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -295,34 +178,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		let mut runs_first_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
-		}
-		runs[runs_first_run_index].remove(&intersections_vec[0]);
-		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_first_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
-		sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
-		if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[1].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 
-		if runs.len() != 0 {
-			let mut runs_third_run_index = 0;
-			for (i, run) in runs.iter().enumerate() {
-				if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
-			}
-			runs[runs_third_run_index].remove(&intersections_vec[2]);
-			let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
-			runs.swap_remove(runs_third_run_index);
-			for run in new_runs {
-				runs.push(run);
-			}
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -331,28 +191,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		let mut runs_first_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[0]) {runs_first_run_index = i; break;}
-		}
-		runs[runs_first_run_index].remove(&intersections_vec[0]);
-		let new_runs = get_runs(&runs[runs_first_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_first_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
-		sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
-		if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[1].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 
-		if sets.contains_key(&intersections_vec[2].num) {
-			sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
-			if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
-				sets.remove(&intersections_vec[2].num);
-			}
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 		
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -361,34 +204,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
-		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[0].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[0]);
 
-		let mut runs_second_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
-		}
-		runs[runs_second_run_index].remove(&intersections_vec[1]);
-		let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_second_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 
-		if runs.len() != 0 {
-			let mut runs_third_run_index = 0;
-			for (i, run) in runs.iter().enumerate() {
-				if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
-			}
-			runs[runs_third_run_index].remove(&intersections_vec[2]);
-			let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
-			runs.swap_remove(runs_third_run_index);
-			for run in new_runs {
-				runs.push(run);
-			}
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -397,28 +217,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
-		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[0].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[0]);
 
-		let mut runs_second_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[1]) {runs_second_run_index = i; break;}
-		}
-		runs[runs_second_run_index].remove(&intersections_vec[1]);
-		let new_runs = get_runs(&runs[runs_second_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_second_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 
-		if sets.contains_key(&intersections_vec[2].num) {
-			sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
-			if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
-				sets.remove(&intersections_vec[2].num);
-			}
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -427,28 +230,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, mut runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
-		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[0].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[0]);
 
-		if sets.contains_key(&intersections_vec[1].num) {
-			sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
-			if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
-				sets.remove(&intersections_vec[1].num);
-			}
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 		
-		let mut runs_third_run_index = 0;
-		for (i, run) in runs.iter().enumerate() {
-			if run.contains(&intersections_vec[2]) {runs_third_run_index = i; break;}
-		}
-		runs[runs_third_run_index].remove(&intersections_vec[2]);
-		let new_runs = get_runs(&runs[runs_third_run_index].iter().cloned().collect::<Vec<Card>>());
-		runs.swap_remove(runs_third_run_index);
-		for run in new_runs {
-			runs.push(run);
-		}
+		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -457,24 +243,11 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 		let (mut sets, runs) = copy_sets_and_runs(sets_in, runs_in);
 
-		sets.get_mut(&intersections_vec[0].num).unwrap().remove(&intersections_vec[0]);
-		if sets.get(&intersections_vec[0].num).unwrap().len() < 3 {
-			sets.remove(&intersections_vec[0].num);
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[0]);
 
-		if sets.contains_key(&intersections_vec[1].num) {
-			sets.get_mut(&intersections_vec[1].num).unwrap().remove(&intersections_vec[1]);
-			if sets.get(&intersections_vec[1].num).unwrap().len() < 3 {
-				sets.remove(&intersections_vec[1].num);
-			}
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 
-		if sets.contains_key(&intersections_vec[2].num) {
-			sets.get_mut(&intersections_vec[2].num).unwrap().remove(&intersections_vec[2]);
-			if sets.get(&intersections_vec[2].num).unwrap().len() < 3 {
-				sets.remove(&intersections_vec[2].num);
-			}
-		}
+		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
@@ -570,4 +343,28 @@ fn copy_sets_and_runs(sets_in: &HashMap<i32, HashSet<Card>>, runs_in: &Vec<HashS
 	}
 
 	(sets, runs)
+}
+
+fn remove_card_from_sets(sets: &mut HashMap<i32, HashSet<Card>>, card: &Card) {
+	if sets.contains_key(&card.num) {
+		sets.get_mut(&card.num).unwrap().remove(card);
+		if sets.get(&card.num).unwrap().len() < 3 {
+			sets.remove(&card.num);
+		}
+	}
+}
+
+fn remove_card_from_runs(runs: &mut Vec<HashSet<Card>>, card: &Card) {
+	if runs.len() != 0 {
+		let mut runs_index = 0;
+		for (i, run) in runs.iter().enumerate() {
+			if run.contains(card) {runs_index = i; break;}
+		}
+		runs[runs_index].remove(card);
+		let new_runs = get_runs(&runs[runs_index].iter().cloned().collect::<Vec<Card>>());
+		runs.swap_remove(runs_index);
+		for run in new_runs {
+			runs.push(run);
+		}
+	}
 }
