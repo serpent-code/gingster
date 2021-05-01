@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use crate::structs::card::*;
 
-pub fn get_runs(inp: &Vec<Card>) -> Vec<HashSet<Card>> {
+pub fn get_runs(inp: &[Card]) -> Vec<HashSet<Card>> {
 	// It is assumed input cards are from the same suit.
 	let mut inpcl: Vec<i32> = Vec::with_capacity(12);
 	let mut cards: HashSet<Card> = HashSet::with_capacity(12);
@@ -10,7 +10,7 @@ pub fn get_runs(inp: &Vec<Card>) -> Vec<HashSet<Card>> {
 		cards.insert(*card);
 	}
 
-	inpcl.sort();
+	inpcl.sort_unstable();
 
 	let mut output: Vec<HashSet<i32>> = Vec::with_capacity(12);
 	let mut temph: HashSet<i32> = HashSet::with_capacity(12);

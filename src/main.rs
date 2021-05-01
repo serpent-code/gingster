@@ -39,16 +39,16 @@ fn game_start(initial_hand: &HashSet<Card>) -> (Option<Card>, Option<Card>, Opti
 			let ( _ , card ) = get_one_card(initial_hand);
 			if eval_faceup(initial_hand , &card) {
 				println!("Pickup [{}]", card);
-				return(Some(card), None, None);
+				(Some(card), None, None)
 			} else {
 				println!("Pass.");
 				println!("If he passed too pick up a card from deck and enter it.");
 				println!("If he picked up the faceup card => R [Card he dropped]");
 				let (oppo_picked_faceup_card , card_in) = get_one_card(initial_hand);
 				if oppo_picked_faceup_card {
-					return(None, Some(card) , Some(card_in));
+					(None, Some(card) , Some(card_in))
 				} else {
-					return(Some(card_in) , Some(card), None);
+					(Some(card_in) , Some(card), None)
 				}
 			}
 		},
@@ -64,19 +64,19 @@ fn game_start(initial_hand: &HashSet<Card>) -> (Option<Card>, Option<Card>, Opti
 		 		let card = parse_one_card(inp_vec[1]);
 		 		if eval_faceup(initial_hand , &card) {
 		 			println!("Pickup [{}]", card);
-		 			return(Some(card), None, None);
+		 			(Some(card), None, None)
 		 		} else {
 		 			println!("Pass.");
 		 			println!("He picks up from the deck and drops:");
 		 			// let (_ , card_in) = get_one_card();
-		 			return(None, Some(card), None)
+		 			(None, Some(card), None)
 		 		}
 		 	} else {
 		 		let picked_card  = parse_one_card(inp_vec[0]);
 		 		let dropped_card = parse_one_card(inp_vec[1]);
 		 		// println!("He picked up: {}", picked_card);
 		 		// println!("He dropped : {}", dropped_card );
-		 		return(None, Some(dropped_card), Some(picked_card));
+		 		(None, Some(dropped_card), Some(picked_card))
 		 	}
 		 },
 	}
@@ -159,7 +159,7 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 	let (sets, runs, deadwood) = melder::get_melds::get_melds(&hand);
 	let mut runs_sorted = Vec::with_capacity(12);
 
-	print!("\n");
+	println!();
 	println!("Sets:");
 	for i in sets.keys() {
 		print!("[ ");
@@ -168,7 +168,7 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 		}
 		print!("] ");
 	}
-	print!("\n");
+	println!();
 	println!("Runs:");
 	for run in runs.iter() {
 		print!("[ ");
@@ -182,7 +182,7 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 		print!("] ");
 		runs_sorted = Vec::with_capacity(12);
 	}
-	print!("\n");
+	println!();
 	// println!("2strghs: {:?}", two_straights );
 
 	println!("Deadwood:");
@@ -191,7 +191,7 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 		print!("{} ", card );
 	}
 	print!("]");
-	print!("\n");
+	println!();
 
 	let mut deadwood_count = 0;
 
@@ -229,19 +229,19 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 		possible_deck.remove(card);
 	}
 
-	if picked.is_some() {
-		oppo_hand.insert(picked.unwrap());
-		possible_deck.remove(&picked.unwrap());
+	if let Some(card) = picked {
+		oppo_hand.insert(card);
+		possible_deck.remove(&card);
 	}
 
-	if passed.is_some() {
-		possible_deck.remove(&passed.unwrap());
-		card_stream.push(passed.unwrap());
+	if let Some(card) = passed {
+		possible_deck.remove(&card);
+		card_stream.push(card);
 	}
 
-	if eleventh_card.is_some() {
-		myhand.insert(eleventh_card.unwrap());
-		possible_deck.remove(&eleventh_card.unwrap());
+	if let Some(card) = eleventh_card {
+		myhand.insert(card);
+		possible_deck.remove(&card);
 		let dropped_card = drop(&mut myhand, 1, &possible_deck);
 		card_stream.push(dropped_card);
 	}

@@ -3,7 +3,7 @@ use crate::structs::card::*;
 use crate::melder::get_runs::*;
 
 pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
-	runs_in: &Vec<HashSet<Card>>) -> (HashMap<i32, HashSet<Card>>, Vec<HashSet<Card>>, HashSet<Card>) {
+	runs_in: &[HashSet<Card>]) -> (HashMap<i32, HashSet<Card>>, Vec<HashSet<Card>>, HashSet<Card>) {
 // -> sets, runs, deadwood
 
 	let mut all_results = Vec::with_capacity(12);
@@ -72,10 +72,10 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		}
 	}
 
-	if intersections_vec.len() == 0 {
+	if intersections_vec.is_empty() {
 		let (sets, runs) = copy_sets_and_runs(sets_in, runs_in);
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 	}
 
 	else if intersections_vec.len() == 1 {
@@ -85,7 +85,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_runs(&mut runs, &intersections_vec[0]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give it to straight:
 		let (mut sets, runs) = copy_sets_and_runs(sets_in, runs_in);
@@ -93,7 +93,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_sets(&mut sets, &intersections_vec[0]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 	}
 
 	else if intersections_vec.len() == 2 {
@@ -106,7 +106,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 		
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to straight, second to set:
 
@@ -117,7 +117,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_runs(&mut runs, &intersections_vec[1]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to set, second to straight:
 
@@ -128,7 +128,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to straight, second to straight:
 
@@ -139,7 +139,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_sets(&mut sets, &intersections_vec[1]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 	}
 
@@ -155,7 +155,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to set, second to set, third to straight:
 
@@ -168,7 +168,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to set, second to straight, third to set:
 
@@ -181,7 +181,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to set, second to straight, third to straight:
 
@@ -194,7 +194,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 		
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to straight, second to set, third to set:
 
@@ -207,7 +207,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to straight, second to set, third to straight:
 
@@ -220,7 +220,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to straight, second to straight, third to set:
 
@@ -233,7 +233,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_runs(&mut runs, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// give first card to straight, second to straight, third to straight:
 
@@ -246,7 +246,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		remove_card_from_sets(&mut sets, &intersections_vec[2]);
 
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 	}
 
@@ -255,13 +255,13 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		let (_, runs) = copy_sets_and_runs(sets_in, runs_in);
 		let sets = HashMap::new();
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 
 		// trash all straights, only keep sets
 		let (sets, _) = copy_sets_and_runs(sets_in, runs_in);
 		let runs = Vec::new();
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
-		all_results.push((sets.to_owned(), runs.to_owned(), deadwood.to_owned()));
+		all_results.push((sets, runs, deadwood));
 	}
 
 
@@ -302,7 +302,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 
 
 fn get_just_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
-	runs_in: &Vec<HashSet<Card>>) -> HashSet<Card> {
+	runs_in: &[HashSet<Card>]) -> HashSet<Card> {
 	let mut runshs = HashSet::with_capacity(12);
 	let mut setshs = HashSet::with_capacity(12);
 
@@ -325,7 +325,7 @@ fn get_just_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>
 	deadwood_hs
 }
 
-fn copy_sets_and_runs(sets_in: &HashMap<i32, HashSet<Card>>, runs_in: &Vec<HashSet<Card>>) 
+fn copy_sets_and_runs(sets_in: &HashMap<i32, HashSet<Card>>, runs_in: &[HashSet<Card>]) 
 	-> (HashMap<i32, HashSet<Card>>, Vec<HashSet<Card>>) {
 	let mut sets: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
 	let mut runs: Vec<HashSet<Card>> = Vec::with_capacity(12);
@@ -351,7 +351,7 @@ fn remove_card_from_sets(sets: &mut HashMap<i32, HashSet<Card>>, card: &Card) {
 }
 
 fn remove_card_from_runs(runs: &mut Vec<HashSet<Card>>, card: &Card) {
-	if runs.len() != 0 {
+	if !runs.is_empty() {
 		let mut runs_index = 0;
 		for (i, run) in runs.iter().enumerate() {
 			if run.contains(card) {runs_index = i; break;}

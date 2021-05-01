@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use crate::structs::card::*;
 
-pub fn eval_drop(deadwood_sorted: &Vec<Card>, possible_deck: &HashSet<Card>) -> Card {
+pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Card {
 
 	let mut hbynum: HashMap<i32, Vec<Card>> = HashMap::with_capacity(12);
 	let mut two_of_kinds: HashMap<i32, Vec<Card>> = HashMap::with_capacity(12);
@@ -80,7 +80,7 @@ pub fn eval_drop(deadwood_sorted: &Vec<Card>, possible_deck: &HashSet<Card>) -> 
 
 	// Complete all_candidates and start trash:
 
-	for (_key, value) in &two_of_kinds {
+ 	for value in two_of_kinds.values() {
 		for card in value {
 			all_candidates.insert(card.to_owned());
 		}
@@ -110,8 +110,9 @@ pub fn eval_drop(deadwood_sorted: &Vec<Card>, possible_deck: &HashSet<Card>) -> 
 	for card_vec in &two_straights {
 		let mut score = 0;
 		for possible_card in possible_deck {
-			if (possible_card.suit == card_vec[0].suit && possible_card.num == card_vec[0].num - 1) 
-			|| (possible_card.suit == card_vec[0].suit && possible_card.num == card_vec[1].num + 1) {
+
+			if (possible_card.num == card_vec[1].num + 1 || possible_card.num == card_vec[0].num - 1)
+				&& possible_card.suit == card_vec[0].suit {
 				score += 1;
 			}
 		}
@@ -138,7 +139,7 @@ pub fn eval_drop(deadwood_sorted: &Vec<Card>, possible_deck: &HashSet<Card>) -> 
 					}
 				}
 
-				for (_key, value) in &two_of_kinds {
+				for value in two_of_kinds.values() {
 					if value.contains(&card) {
 						for card in value {
 							scores_hm_final.get_mut(&(ia + ic)).unwrap().insert(card.to_owned());
@@ -197,17 +198,16 @@ pub fn eval_drop(deadwood_sorted: &Vec<Card>, possible_deck: &HashSet<Card>) -> 
 	let mut trash_sorted: Vec<Card> = trash.iter().cloned().collect();
 	trash_sorted.sort();
 
-	if trash_sorted.len() != 0 {
-		if trash_sorted[trash_sorted.len() - 1].num >= 5 {
-			return trash_sorted[trash_sorted.len() - 1];
-		}
+	if !trash_sorted.is_empty() && trash_sorted[trash_sorted.len() - 1].num >= 5 {
+		return trash_sorted[trash_sorted.len() - 1];
 	}
+
 
 	for i in 1..=4 {
 		let mut candid_trash: Vec<Card> = scores_hm_final.get(&i).unwrap().iter().cloned().collect();
 		candid_trash.sort();
 
-		if candid_trash.len() != 0 {
+		if !candid_trash.is_empty() {
 			match i {
 				1 | 2 => return candid_trash[candid_trash.len() - 1],
 				3 | 4 => {
