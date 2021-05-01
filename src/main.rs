@@ -9,11 +9,11 @@ mod evals;
 use std::collections::HashSet;
 use crate::structs::card::*;
 
+const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 
 fn main() {
 
-	println!("Gingster 0.1.3");
-
+	println!("Gingster {}", VERSION.unwrap_or("unknown version"));
 
 	let initial_hand = get_initial_hand();
 
