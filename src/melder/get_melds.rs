@@ -1,9 +1,10 @@
 use std::collections::{HashMap, HashSet};
 use crate::structs::card::*;
+use crate::structs::melded_hand::*;
 use crate::melder::get_runs::*;
 use crate::melder::get_deadwood::*;
 
-pub fn get_melds(hand: &HashSet<Card>) -> (HashMap<i32, HashSet<Card>>, Vec<HashSet<Card>>, HashSet<Card>) {
+pub fn get_melds(hand: &HashSet<Card>) -> MeldedHand {
 
 	let mut hbynum: HashMap<i32, Vec<Card>> = HashMap::with_capacity(12);
 	let mut hbysuit: HashMap<char, Vec<Card>> = HashMap::with_capacity(12);
@@ -48,8 +49,5 @@ pub fn get_melds(hand: &HashSet<Card>) -> (HashMap<i32, HashSet<Card>>, Vec<Hash
 		}
 	}
 
-	let (out_sets, out_runs, deadwood) = get_deadwood(&local_hand_hs, &sets, &runs);
-
-	(out_sets, out_runs, deadwood)
-
+	get_deadwood(&local_hand_hs, &sets, &runs)
 }
