@@ -246,22 +246,23 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 		card_stream.push(dropped_card);
 	}
 
-	if eleventh_card.is_none() && passed.is_some() && picked.is_some() {
-		if eval_faceup(&myhand, &passed.unwrap()) {
-			println!("Pickup the faceup card {}", &passed.unwrap());
-			myhand.insert(passed.unwrap());
-			possible_deck.remove(&passed.unwrap());
-		} else {
-			println!("Pick a card from the deck and enter it");
-			let (_, picked_card) = get_one_card(&myhand);
-			card_stream.push(passed.unwrap());
-			myhand.insert(picked_card);
-			possible_deck.remove(&picked_card);
+	if eleventh_card.is_none() && picked.is_some() {
+		if let Some(passed) = passed {
+			if eval_faceup(&myhand, &passed) {
+				println!("Pickup the faceup card {}", &passed);
+				myhand.insert(passed);
+				possible_deck.remove(&passed);
+			} else {
+				println!("Pick a card from the deck and enter it");
+				let (_, picked_card) = get_one_card(&myhand);
+				card_stream.push(passed);
+				myhand.insert(picked_card);
+				possible_deck.remove(&picked_card);
+			}
+			let dropped_card = drop(&mut myhand, 1, &possible_deck);
+			card_stream.push(dropped_card);	
 		}
-		let dropped_card = drop(&mut myhand, 1, &possible_deck);
-		card_stream.push(dropped_card);
 	}
-
 
 
 	loop {
