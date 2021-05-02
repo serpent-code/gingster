@@ -389,17 +389,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 
 fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 
-	// let (_pre_sets, _pre_runs, pre_deadwood) = melder::get_melds::get_melds(hand);
 	let melded_hand_pre = melder::get_melds::get_melds(hand);
-
-	// let mut pre_deadwood_count = 0;
-
-	// println!("pre:");
-	// print_melds_and_deadwood(&hand);
-
-	// for card in pre_deadwood.iter() {
-	// 	pre_deadwood_count += card.deadwood;
-	// }
 
 	let mut big_hand = HashSet::with_capacity(12);
 
@@ -409,19 +399,18 @@ fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 
 	big_hand.insert(*candidate);
 
-	// let (_aft_sets, _aft_runs, aft_deadwood) = melder::get_melds::get_melds(&big_hand);
 	let melded_hand_aft = melder::get_melds::get_melds(&big_hand);
 
-	// println!("post:");
-	// print_melds_and_deadwood(&big_hand);
 
-	// let mut aft_deadwood_count = 0;
+	if melded_hand_aft.get_all_melded_value() > melded_hand_pre.get_all_melded_value() {
+		return true;
+	}
 
-	// for card in aft_deadwood.iter() {
-	// 	aft_deadwood_count += card.deadwood;
-	// }
+	if melded_hand_aft.deadwood.len() < melded_hand_pre.deadwood.len() {
+		return true;
+	}
 
-	if melded_hand_aft.deadwood.len() < melded_hand_pre.deadwood.len() || candidate.num <= 3 {
+	if candidate.num <= 3 {
 		return true;
 	}
 
