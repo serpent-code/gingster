@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, Eq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Card {
 	pub num: i32,
 	pub suit: char,
@@ -33,13 +33,6 @@ impl Ord for Card {
 impl PartialOrd for Card {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for Card {
-    fn eq(&self, other: &Self) -> bool {
-        self.num == other.num &&
-        self.suit == other.suit
     }
 }
 
