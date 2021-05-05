@@ -209,19 +209,26 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 
 		if !candid_trash.is_empty() {
 			match i {
-				1 | 2 => return candid_trash[candid_trash.len() - 1],
+				1 | 2 => {
+					if candid_trash[candid_trash.len() - 1].num > 3 {
+						return candid_trash[candid_trash.len() - 1];
+					}
+				},
 				3 | 4 => {
 					for card_vec in &two_straights {
-						if card_vec.contains(&candid_trash[candid_trash.len() - 1]) {
+						if card_vec.contains(&candid_trash[candid_trash.len() - 1])
+							&& candid_trash[candid_trash.len() - 1].num > 3 {
 							return candid_trash[candid_trash.len() - 2];
 						}
 					}
-					return candid_trash[candid_trash.len() - 1];
+					if candid_trash[candid_trash.len() - 1].num > 3 {
+						return candid_trash[candid_trash.len() - 1];
+					}
 				},
 				_ => panic!("Inaccessible path"),
 			}
 		}	
 	}
 
-	trash_sorted[trash_sorted.len() - 1]
+	deadwood_sorted[deadwood_sorted.len() - 1]
 }
