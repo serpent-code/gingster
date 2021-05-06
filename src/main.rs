@@ -20,6 +20,10 @@ fn main() {
 
 	println!("Gingster {}", VERSION.unwrap_or("unknown version"));
 
+	if help_in_command_line_args() {
+		print_help_information()
+	}
+
 	let initial_hand = get_initial_hand();
 
 	print_melds_and_deadwood(&initial_hand);
@@ -428,4 +432,23 @@ fn knock(hand: &mut HashSet<Card>, knock_card: Card) {
 	hand.remove(&knock_card);
 	print_melds_and_deadwood(&hand);
 	std::process::exit(0);
+}
+
+fn help_in_command_line_args() -> bool {
+	let mut result = false;
+	for argument in std::env::args() {
+		match argument.as_str() {
+			"-h" | "--help" => result = true,
+			_ => (),
+		}
+	}
+	result
+}
+
+fn print_help_information() {
+	println!("Gin Rummy playing engine");
+	println!("-v  --verbose        Enable verbose mode");
+	println!("-vv --very-verbose   Enable very verbose mode");
+	println!("-e  --emoji          Print cards suits using emojis");
+	std::process::exit(0);					
 }

@@ -21,9 +21,7 @@ impl Config {
 					very_verbose = true;
 				},
 				"-v" | "--verbose" => very_verbose = true,
-				"-e" | "--emoji" => {
-					use_emoji = true;
-				},
+				"-e" | "--emoji" => use_emoji = true,
 				_ => (),
 			}
 		}
