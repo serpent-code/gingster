@@ -202,24 +202,34 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 		candid_trash.sort();
 
 		if !candid_trash.is_empty() {
-			match i {
-				1 | 2 => {
-					if candid_trash[candid_trash.len() - 1].num > 3 {
-						return candid_trash[candid_trash.len() - 1];
-					}
-				},
+			let eval_drop_card = match i {
+				1 | 2 => candid_trash[candid_trash.len() - 1],
 				3 | 4 => {
+					let mut part_of_two_straight = false;
+					let mut part_of_two_of_kinds = false;
 					for card_vec in &two_straights {
-						if card_vec.contains(&candid_trash[candid_trash.len() - 1])
-							&& candid_trash[candid_trash.len() - 1].num > 3 {
-							return candid_trash[candid_trash.len() - 2];
+						if card_vec.contains(&candid_trash[candid_trash.len() - 1]) {
+							part_of_two_straight = true;
 						}
 					}
-					if candid_trash[candid_trash.len() - 1].num > 3 {
-						return candid_trash[candid_trash.len() - 1];
+					for card_vec in two_of_kinds.values() {
+						if card_vec.contains(&candid_trash[candid_trash.len() - 1]) {
+							part_of_two_of_kinds = true;
+						}
+					}
+					match part_of_two_straight {
+						true => match part_of_two_of_kinds {
+								true => candid_trash[candid_trash.len() - 2],
+								false => candid_trash[candid_trash.len() - 1],
+						},
+						false => candid_trash[candid_trash.len() - 1],
 					}
 				},
 				_ => panic!("Inaccessible path"),
+			};
+
+			if eval_drop_card.num > 3 {
+				return eval_drop_card
 			}
 		}	
 	}
