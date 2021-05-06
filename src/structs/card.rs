@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::fmt;
+use crate::config::CONFIG;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Card {
@@ -19,7 +20,18 @@ impl fmt::Display for Card {
 			13 => 'K',
 			_ => panic!("Bad number in display."),
 		};
-		write!(f, "{}{}", num_char, self.suit).unwrap();
+		let mut tmp = [0; 4];
+		let suit = match CONFIG.use_emoji {
+			true => match self.suit {
+				'C' => "♣️",
+				'S' => "♠️",
+				'D' => "♦️",
+				'H' => "❤️",
+				_ => panic!("unrecognized card suit"),
+			},
+			false => self.suit.encode_utf8(&mut tmp),
+		};
+		write!(f, "{}{}", num_char, suit).unwrap();
 		Ok(())
 	}
 }

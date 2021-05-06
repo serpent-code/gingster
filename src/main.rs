@@ -164,38 +164,57 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 	let melded_hand = melder::get_melds::get_melds(&hand);
 	let mut runs_sorted = Vec::with_capacity(12);
 
-	println!();
-	println!("Sets:");
-	for i in melded_hand.sets.keys() {
-		print!("[ ");
-		for card in melded_hand.sets[i].iter() {
-			print!("{} ", card );
+	if !melded_hand.sets.is_empty() {
+		println!();
+		println!("Sets:");
+		for i in melded_hand.sets.keys() {
+			print!("[ ");
+			for card in melded_hand.sets[i].iter() {
+				print!("{}", card );
+				match CONFIG.use_emoji {
+					true => print!("  "),
+					false => print!(" "),
+				}
+			}
+			print!("] ");
 		}
-		print!("] ");
 	}
-	println!();
-	println!("Runs:");
-	for run in melded_hand.runs.iter() {
-		print!("[ ");
-		for card in run.iter() {
-			runs_sorted.push(card);
-			runs_sorted.sort()
-		}
-		for card in runs_sorted.iter(){
-			print!("{} ", card );
-		}
-		print!("] ");
-		runs_sorted = Vec::with_capacity(12);
-	}
-	println!();
-	// println!("2strghs: {:?}", two_straights );
 
-	println!("Deadwood:");
-	print!("[ ");
-	for card in melded_hand.deadwood.iter() {
-		print!("{} ", card );
+	if !melded_hand.runs.is_empty() {
+		println!();
+		println!("Runs:");
+		for run in melded_hand.runs.iter() {
+			print!("[ ");
+			for card in run.iter() {
+				runs_sorted.push(card);
+				runs_sorted.sort()
+			}
+			for card in runs_sorted.iter(){
+				print!("{}", card );
+				match CONFIG.use_emoji {
+					true => print!("  "),
+					false => print!(" "),
+				}
+			}
+			print!("] ");
+			runs_sorted = Vec::with_capacity(12);
+		}
 	}
-	print!("]");
+	
+	if !melded_hand.deadwood.is_empty() {
+		println!();
+		println!("Deadwood:");
+		print!("[ ");
+		for card in melded_hand.deadwood.iter() {
+			print!("{}", card );
+			match CONFIG.use_emoji {
+				true => print!("  "),
+				false => print!(" "),
+			}
+		}
+		print!("]");
+	}
+
 	println!();
 
 	let mut deadwood_count = 0;
