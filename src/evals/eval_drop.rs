@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use crate::structs::card::*;
+use crate::config::CONFIG;
 
 pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Card {
 
@@ -14,13 +15,6 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 	let mut scores_hm_two_of_kinds: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
 	let mut scores_hm_two_straights: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
 	let mut scores_hm_final: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(12);
-
-	let mut very_verbose = false;
-	for argument in std::env::args() {
-		if argument == "--very-verbose" {
-			very_verbose = true;
-		}
-	}
 
 	// Initialize scores_hms:
 
@@ -178,7 +172,7 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 		trash.insert(card.to_owned());
 	}
 
-	if very_verbose {
+	if CONFIG.very_verbose {
 		print!("Trash: [ ");
 		for card in &trash {
 			print!("{} ", card );

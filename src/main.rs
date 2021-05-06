@@ -217,14 +217,6 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 	let mut card_stream: Vec<Card> = Vec::with_capacity(40);
 	let mut round = 1;
 
-	let mut verbose = false;
-	for argument in std::env::args() {
-		match argument.as_str() {
-			"--very-verbose" | "--verbose" => verbose = true,
-			_ => (),
-		}
-	}
-
 	for card in DECK.iter() {
 		possible_deck.insert(*card);
 	}
@@ -297,7 +289,7 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 
 		card_stream.push(dropped_card);
 
-		if verbose {
+		if CONFIG.verbose {
 			print_melds_and_deadwood(&myhand);			
 		}
 
