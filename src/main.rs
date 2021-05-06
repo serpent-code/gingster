@@ -6,8 +6,13 @@
 mod structs;
 mod melder;
 mod evals;
+mod config;
 use std::collections::HashSet;
 use crate::structs::card::*;
+use crate::config::CONFIG;
+
+#[macro_use]
+extern crate lazy_static;
 
 const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 
