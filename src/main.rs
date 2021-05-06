@@ -328,7 +328,7 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 			std::process::exit(0);
 		},
 		1 => {
-			println!("Drop {} and declare GIN!" , deadwood_sorted[0]);
+			println!("Drop {}and declare GIN!" , deadwood_sorted[0]);
 			hand.remove(&deadwood_sorted[0]);
 			print_melds_and_deadwood(&hand);
 			std::process::exit(0);
@@ -424,7 +424,7 @@ fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 }
 
 fn knock(hand: &mut HashSet<Card>, knock_card: Card) {
-	println!("Drop {} and Knock!" , &knock_card);
+	println!("Drop {}and Knock!" , &knock_card);
 	hand.remove(&knock_card);
 	print_melds_and_deadwood(&hand);
 	std::process::exit(0);

@@ -16,12 +16,12 @@ impl Config {
 		let mut use_emoji = false;
 		for argument in std::env::args() {
 			match argument.as_str() {
-				"--very-verbose" => {
+				"-vv" | "--very-verbose" => {
 					verbose = true;
 					very_verbose = true;
 				},
-				"--verbose" => very_verbose = true,
-				"--emoji" => {
+				"-v" | "--verbose" => very_verbose = true,
+				"-e" | "--emoji" => {
 					use_emoji = true;
 				},
 				_ => (),
