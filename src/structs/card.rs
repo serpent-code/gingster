@@ -31,7 +31,10 @@ impl fmt::Display for Card {
 			},
 			false => self.suit.encode_utf8(&mut tmp),
 		};
-		write!(f, "{}{}", num_char, suit).unwrap();
+		match CONFIG.use_emoji {
+			true  => write!(f, "{}{}  ", num_char, suit).unwrap(),
+			false => write!(f, "{}{} ", num_char, suit).unwrap(),
+		}
 		Ok(())
 	}
 }

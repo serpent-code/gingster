@@ -175,7 +175,7 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 	if CONFIG.very_verbose {
 		print!("Trash: [ ");
 		for card in &trash {
-			print!("{} ", card );
+			print!("{}", card );
 		}
 		println!("]");
 
@@ -183,7 +183,7 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 		for (key, value) in &scores_hm_final {
 			print!("{} : [ ", key);
 			for card in value {
-				print!("{} ", card );
+				print!("{}", card );
 			}
 			println!("]");
 		}

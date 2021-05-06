@@ -43,7 +43,7 @@ fn game_start(initial_hand: &HashSet<Card>) -> (Option<Card>, Option<Card>, Opti
 			println!("What is the faceup card in the middle?");
 			let ( _ , card ) = get_one_card(initial_hand);
 			if eval_faceup(initial_hand , &card) {
-				println!("Pickup [{}]", card);
+				println!("Pickup {}", card);
 				(Some(card), None, None)
 			} else {
 				println!("Pass.");
@@ -68,7 +68,7 @@ fn game_start(initial_hand: &HashSet<Card>) -> (Option<Card>, Option<Card>, Opti
 		 	if inp_vec[0] == "P" {
 		 		let card = parse_one_card(inp_vec[1]);
 		 		if eval_faceup(initial_hand , &card) {
-		 			println!("Pickup [{}]", card);
+		 			println!("Pickup {}", card);
 		 			(Some(card), None, None)
 		 		} else {
 		 			println!("Pass.");
@@ -171,10 +171,6 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 			print!("[ ");
 			for card in melded_hand.sets[i].iter() {
 				print!("{}", card );
-				match CONFIG.use_emoji {
-					true => print!("  "),
-					false => print!(" "),
-				}
 			}
 			print!("] ");
 		}
@@ -191,10 +187,6 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 			}
 			for card in runs_sorted.iter(){
 				print!("{}", card );
-				match CONFIG.use_emoji {
-					true => print!("  "),
-					false => print!(" "),
-				}
 			}
 			print!("] ");
 			runs_sorted = Vec::with_capacity(12);
@@ -207,10 +199,6 @@ fn print_melds_and_deadwood(hand: &HashSet<Card>) {
 		print!("[ ");
 		for card in melded_hand.deadwood.iter() {
 			print!("{}", card );
-			match CONFIG.use_emoji {
-				true => print!("  "),
-				false => print!(" "),
-			}
 		}
 		print!("]");
 	}
@@ -287,7 +275,7 @@ fn mainloop(hand: &HashSet<Card>, eleventh_card: Option<Card>,
 
 		if oppo_picked_faceup_card {
 			oppo_hand.insert(card_stream[card_stream.len() - 1]);
-			println!("Opponent picked up {} card that I dropped.",card_stream[card_stream.len()- 1]);
+			println!("Opponent picked up {}card that I dropped.",card_stream[card_stream.len()- 1]);
 		}
 
 		card_stream.push(faceup_card);
