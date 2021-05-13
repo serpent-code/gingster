@@ -7,12 +7,12 @@ All card inputs have the form 1 character rank followed immediately by 1 charact
 
 ranks:
 
-Ace => A,
-2 ..= 9 => number itself,
-10 => T,
-Jack => J,
-Queen => Q,
-King => K
+Ace => A  
+2 ..= 9 => number itself  
+10 => T  
+Jack => J  
+Queen => Q  
+King => K  
 
 Suits:
 
@@ -24,6 +24,11 @@ This is one example of acceptable input when asked for the initial hand:
 
 At any point entering "end" in input it makes the melds it can, counts its deadwood and exits.
 
-Currently it has no idea about a 100 point game score as a collection of hands either. It plays one hand and exits, either by knocking or typing "end".
+Currently it has no idea about a 100 point game score as a collection of hands either. It plays one hand and exits.
 
-It builds with the latest stable Rust and doesn't have any dependencies except Rust's standard library.
+### Command line options
+| Option | Description |
+| ------ | ------ |
+| `-v  --verbose` | Verbose |
+| `-vv --very-verbose` | Very verbose |
+| `-e  --emoji` | Print suits using emoji symbols |
