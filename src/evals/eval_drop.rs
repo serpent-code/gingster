@@ -172,6 +172,16 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 		trash.insert(card.to_owned());
 	}
 
+	// cards in valid triangles but also in another dead 2ofkind or 2straight:
+
+	for card in scores_hm_final.get(&3).unwrap() {
+		trash.remove(&card);
+	}
+
+	for card in scores_hm_final.get(&4).unwrap() {
+		trash.remove(&card);
+	}
+
 	if CONFIG.very_verbose {
 		print!("Trash: [ ");
 		for card in &trash {
