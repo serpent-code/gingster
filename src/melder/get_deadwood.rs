@@ -7,6 +7,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 	runs_in: &[HashSet<Card>]) -> MeldedHand {
 
 	let mut all_results = Vec::with_capacity(12);
+	let mut lowest_deadwoods = Vec::with_capacity(12);
 	let mut runshs = HashSet::with_capacity(12);
 	let mut setshs = HashSet::with_capacity(12);
 
@@ -251,15 +252,31 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 	}
 
 	else if intersections_vec.len() > 3 {
-		// trash all sets, only keep straights
-		let (_, runs) = copy_sets_and_runs(sets_in, runs_in);
-		let sets = HashMap::new();
+		// trash all sets containing intersection card, only keep straights
+		let (old_sets, runs) = copy_sets_and_runs(sets_in, runs_in);
+		let mut sets: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(4);
+		'a: for num in old_sets.keys() {
+			for card in old_sets[num].iter() {
+				if intersections_vec.contains(&card) {
+					continue 'a;
+				}
+			}
+			sets.insert(*num, old_sets[num].clone());
+		}
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push(MeldedHand {sets, runs, deadwood});
 
-		// trash all straights, only keep sets
-		let (sets, _) = copy_sets_and_runs(sets_in, runs_in);
-		let runs = Vec::new();
+		// trash all straights containing intersection card, only keep sets
+		let (sets, old_runs) = copy_sets_and_runs(sets_in, runs_in);
+		let mut runs: Vec<HashSet<Card>> = Vec::with_capacity(12);
+		'b: for run in &old_runs {
+			for card in run.iter() {
+				if intersections_vec.contains(&card) {
+					continue 'b;
+				}
+			}
+			runs.push(run.clone());
+		}
 		let deadwood = get_just_deadwood(hand, &sets, &runs);
 		all_results.push(MeldedHand {sets, runs, deadwood});
 	}
@@ -292,7 +309,50 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 			deadwood_count += card.deadwood;
 		}
 		if min_deadwood == deadwood_count {
-			return result.clone();
+			lowest_deadwoods.push(result.clone());
+		}
+	}
+
+	if lowest_deadwoods.len() == 1 {
+		return lowest_deadwoods[0].clone();
+	}
+
+	let mut results_deadwood_vec_2: Vec<i32> = Vec::with_capacity(12);
+
+	for melded_hand in &lowest_deadwoods {
+		// Gin and big gins
+		if melded_hand.deadwood.len() < 2 {
+			return melded_hand.clone();
+		}
+
+		let mut deadwood_count_aft_drop = 0;
+		let mut deadwood_sorted: Vec<Card> = melded_hand.deadwood.iter().cloned().collect();
+		deadwood_sorted.sort();
+		deadwood_sorted.pop().unwrap();
+
+		for card in &deadwood_sorted {
+			deadwood_count_aft_drop += card.deadwood;
+		}
+		results_deadwood_vec_2.push(deadwood_count_aft_drop);
+	}
+
+	let min_deadwood_aft_drop = match results_deadwood_vec_2.iter().min() {
+		Some(v) => *v,
+		None => panic!("results_deadwood_vec_2 didn't have a minimum int in it"),
+	};
+
+	for melded_hand in &lowest_deadwoods {
+		let mut deadwood_count_aft_drop = 0;
+		let mut deadwood_sorted: Vec<Card> = melded_hand.deadwood.iter().cloned().collect();
+		deadwood_sorted.sort();
+		deadwood_sorted.pop().unwrap();
+
+		for card in &deadwood_sorted {
+			deadwood_count_aft_drop += card.deadwood;
+		}
+
+		if min_deadwood_aft_drop == deadwood_count_aft_drop {
+			return melded_hand.clone();
 		}
 	}
 
