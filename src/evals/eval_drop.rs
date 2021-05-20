@@ -221,7 +221,7 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 					if !intersection.is_empty(){
 						intersection[0]
 					} else {
-						continue;
+						candid_trash[candid_trash.len() - 1]
 					}
 				},
 				4 => {
