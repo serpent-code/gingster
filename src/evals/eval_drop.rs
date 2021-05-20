@@ -214,7 +214,17 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 		if !candid_trash.is_empty() {
 			let eval_drop_card = match i {
 				1 | 2 => candid_trash[candid_trash.len() - 1],
-				3 | 4 => {
+				3 => {
+					let score_one_cards = scores_hm_final.get(&1).unwrap();
+					let score_three_cards = scores_hm_final.get(&3).unwrap();
+					let intersection: Vec<Card> = score_three_cards.intersection(&score_one_cards).cloned().collect();
+					if !intersection.is_empty(){
+						intersection[0]
+					} else {
+						continue;
+					}
+				},
+				4 => {
 					let mut part_of_two_straight = false;
 					let mut part_of_two_of_kinds = false;
 					for card_vec in &two_straights {
