@@ -55,7 +55,7 @@ fn game_start(initial_hand: &HashSet<Card>) -> (Option<Card>, Option<Card>, Opti
 				println!("If he picked up the faceup card => R [Card he dropped]");
 				let (oppo_picked_faceup_card , card_in) = get_one_card(initial_hand);
 				if oppo_picked_faceup_card {
-					(None, Some(card) , Some(card_in))
+					(None, Some(card_in), Some(card))
 				} else {
 					(Some(card_in) , Some(card), None)
 				}
