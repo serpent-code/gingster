@@ -121,12 +121,12 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 	for ia in 1..=2 {
 		for ic in 1..=2 {
 			let intersection: HashSet<_> = scores_hm_two_of_kinds.get(&ia).unwrap()
-				.intersection(&scores_hm_two_straights.get(&ic).unwrap()).collect();
+				.intersection(scores_hm_two_straights.get(&ic).unwrap()).collect();
 
 			for card in intersection {
 
 				for card_vec in &two_straights {
-					if card_vec.contains(&card) {
+					if card_vec.contains(card) {
 						for card in card_vec {
 							scores_hm_final.get_mut(&(ia + ic)).unwrap().insert(card.to_owned());
 						}
@@ -134,7 +134,7 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 				}
 
 				for value in two_of_kinds.values() {
-					if value.contains(&card) {
+					if value.contains(card) {
 						for card in value {
 							scores_hm_final.get_mut(&(ia + ic)).unwrap().insert(card.to_owned());
 						}
@@ -149,8 +149,8 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 	for i in 2..=4 {
 		for card in scores_hm_final.get(&i).unwrap() {
 			for ii in 1..=4 {
-				scores_hm_two_of_kinds.get_mut(&ii).unwrap().remove(&card);
-				scores_hm_two_straights.get_mut(&ii).unwrap().remove(&card);
+				scores_hm_two_of_kinds.get_mut(&ii).unwrap().remove(card);
+				scores_hm_two_straights.get_mut(&ii).unwrap().remove(card);
 			}
 		}
 	}
@@ -175,11 +175,11 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 	// cards in valid triangles but also in another dead 2ofkind or 2straight:
 
 	for card in scores_hm_final.get(&3).unwrap() {
-		trash.remove(&card);
+		trash.remove(card);
 	}
 
 	for card in scores_hm_final.get(&4).unwrap() {
-		trash.remove(&card);
+		trash.remove(card);
 	}
 
 	if CONFIG.very_verbose {
@@ -217,7 +217,7 @@ pub fn eval_drop(deadwood_sorted: &[Card], possible_deck: &HashSet<Card>) -> Car
 				3 => {
 					let score_one_cards = scores_hm_final.get(&1).unwrap();
 					let score_three_cards = scores_hm_final.get(&3).unwrap();
-					let intersection: Vec<Card> = score_three_cards.intersection(&score_one_cards).cloned().collect();
+					let intersection: Vec<Card> = score_three_cards.intersection(score_one_cards).cloned().collect();
 					if !intersection.is_empty(){
 						intersection[0]
 					} else {

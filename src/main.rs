@@ -165,7 +165,7 @@ fn get_one_card(hand: &HashSet<Card>) -> (bool, Card) {
 
 
 fn print_melds_and_deadwood(hand: &HashSet<Card>) {
-	let melded_hand = melder::get_melds::get_melds(&hand);
+	let melded_hand = melder::get_melds::get_melds(hand);
 	let mut runs_sorted = Vec::with_capacity(12);
 
 	if !melded_hand.sets.is_empty() {
@@ -328,13 +328,13 @@ fn drop(hand: &mut HashSet<Card> , round: i32, possible_deck: &HashSet<Card>) ->
 	match deadwood_sorted.len() {
 		0 => {
 			println!("BIG GIN!");
-			print_melds_and_deadwood(&hand);
+			print_melds_and_deadwood(hand);
 			std::process::exit(0);
 		},
 		1 => {
 			println!("Drop {}and declare GIN!" , deadwood_sorted[0]);
 			hand.remove(&deadwood_sorted[0]);
-			print_melds_and_deadwood(&hand);
+			print_melds_and_deadwood(hand);
 			std::process::exit(0);
 		},
 		_ => {},
@@ -430,7 +430,7 @@ fn eval_faceup(hand: &HashSet<Card>, candidate: &Card) -> bool {
 fn knock(hand: &mut HashSet<Card>, knock_card: Card) {
 	println!("Drop {}and Knock!" , &knock_card);
 	hand.remove(&knock_card);
-	print_melds_and_deadwood(&hand);
+	print_melds_and_deadwood(hand);
 	std::process::exit(0);
 }
 

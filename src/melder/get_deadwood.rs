@@ -257,7 +257,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		let mut sets: HashMap<i32, HashSet<Card>> = HashMap::with_capacity(4);
 		'a: for num in old_sets.keys() {
 			for card in old_sets[num].iter() {
-				if intersections_vec.contains(&card) {
+				if intersections_vec.contains(card) {
 					continue 'a;
 				}
 			}
@@ -271,7 +271,7 @@ pub fn get_deadwood(hand: &HashSet<Card>, sets_in: &HashMap<i32, HashSet<Card>>,
 		let mut runs: Vec<HashSet<Card>> = Vec::with_capacity(12);
 		'b: for run in &old_runs {
 			for card in run.iter() {
-				if intersections_vec.contains(&card) {
+				if intersections_vec.contains(card) {
 					continue 'b;
 				}
 			}
